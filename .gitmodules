@@ -1,0 +1,3 @@
+[submodule "include/util"]
+	path = include/util
+	url = https://github.com/truenotzero/everest-util
