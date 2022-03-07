@@ -77,4 +77,13 @@ size_t str_p_findvv(view, view target, size_t start);
                        _p_start = _p_temp + f.len)
 #define str_split_it(v) str_sub(v, _p_start, _p_end - _p_start)
 
+// match: pattern match the string, extracting views as needed
+// for example:
+// `str_match(input, "user={}", &user);`
+// would check that `input` matches the provided pattern extracing what comes
+// after `=` until the end of the string into `&user`
+_Bool str_p_matchvva(view, view, ...);
+#define str_match(i, p, ...)                                                   \
+  str_p_matchvva(str_view(i), str_view(p), __VA_ARGS__)
+
 #endif // STR_H_

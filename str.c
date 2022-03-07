@@ -1,6 +1,8 @@
 #include "str.h"
 #include "include/util/util.h"
 #include <stdarg.h>
+#include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -98,14 +100,56 @@ size_t str_p_findvv(view v, view target, size_t start) {
   return v.len;
 }
 
-int main() {
-  view v = str_view("my@@name@@is@@slim@@shady");
-  view f = str_view("@@");
+bool str_p_equalsvv(view l, view r) {
+  if (l.len != r.len)
+    return false;
+  if (l.data == r.data)
+    return true;
 
-  str_split_for(v, f) {
-    view it = str_split_it(v);
-    str_println(it);
+  for (size_t i = 0; i < l.len; ++i) {
+    if (l.data[i] != r.data[i]) {
+      return false;
+    }
   }
 
-  return 0;
+  return true;
+}
+
+bool str_p_matchvva(view input, view pattern, ...) {
+  va_list args;
+  va_start(args, pattern);
+  for (size_t i = 0; i < pattern.len;) {
+    view wildcard = str_view("{}");
+
+    // first - find the first character after {} in pattern string
+    size_t wildcard_pos = str_find(pattern, wildcard, 0);
+    view match = str_sub(pattern, wildcard_pos + wildcard.len, 1);
+
+    // now - find same character at or after {} position
+    // thus we get the wildcard's match
+    size_t match_pos = str_find(input, match, wildcard_pos);
+    view slice = str_sub(input, wildcard_pos, match_pos - wildcard_pos);
+
+    if (slice.len == 0) {
+      break;
+    }
+
+    *va_arg(args, view *) = slice;
+
+    // "consume" used pattern/input data
+    size_t sub_start = wildcard_pos + wildcard.len;
+    pattern = str_sub(pattern, sub_start, pattern.len - sub_start);
+    size_t rest_start = wildcard_pos + slice.len;
+    input = str_sub(input, rest_start, input.len - rest_start);
+  }
+  va_end(args);
+  return true;
+}
+
+size_t str_abs_idx(view v, intmax_t idx) {
+  if (idx >= 0) {
+    return idx;
+  } else {
+    return v.len + idx;
+  }
 }
